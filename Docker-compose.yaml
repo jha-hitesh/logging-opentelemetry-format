@@ -1,0 +1,12 @@
+version: "3.4"
+services:
+  loggingoplttester:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: loggingoplttester
+    container_name: loggingoplttester
+    platform: linux/amd64
+    volumes:
+      - .:/srv/
+    tty: true

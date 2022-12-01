@@ -1,0 +1,4 @@
+ujson
+opentelemetry-api==1.14.0
+opentelemetry-sdk==1.14.0
+pytest==7.2.0
