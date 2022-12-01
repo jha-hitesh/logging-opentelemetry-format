@@ -9,12 +9,6 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
-def get_requirements():
-    """Get Requirement."""
-    with open("requirements.txt") as fp:
-        return [x.strip() for x in fp.read().split("\n") if not x.startswith("#")]
-
-
 setup(
     name="logging_opentelemetry_format",
     version="0.0.1",
@@ -34,6 +28,10 @@ setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    install_requires=get_requirements(),
+    install_requires=[
+        "ujson",
+        "opentelemetry-api==1.14.0",
+        "opentelemetry-sdk==1.14.0"
+    ],
     python_requires=">=3.6",
 )
