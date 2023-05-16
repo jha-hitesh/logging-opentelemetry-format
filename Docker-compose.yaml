@@ -10,3 +10,5 @@ services:
     volumes:
       - .:/srv/
     tty: true
+    environment:
+      - OTEL_SERVICE_NAME=app-main-server

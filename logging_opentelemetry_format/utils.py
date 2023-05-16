@@ -2,9 +2,15 @@
 import datetime
 import json
 import logging
+import os
+import socket
 
 from opentelemetry.sdk._logs import _RESERVED_ATTRS
 from opentelemetry.sdk._logs.severity import std_to_otlp
+from opentelemetry.sdk.environment_variables import (
+    OTEL_SERVICE_NAME,
+)
+from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.trace import (
     format_span_id,
     format_trace_id,
@@ -20,9 +26,11 @@ class OpentelemetryLogFormatter(logging.Formatter):
     """OpentelemetryLogFormatter."""
 
     DEFAULT_RESOURCE = {
-        "telemetry.sdk.language": "python",
-        "telemetry.sdk.name": "opentelemetry",
-        "telemetry.sdk.version": pkg_resources.get_distribution(
+        ResourceAttributes.SERVICE_NAME: os.environ.get(OTEL_SERVICE_NAME, "unknown_service"),
+        ResourceAttributes.SERVICE_INSTANCE_ID: socket.gethostname(),
+        ResourceAttributes.TELEMETRY_SDK_LANGUAGE: "python",
+        ResourceAttributes.TELEMETRY_SDK_NAME: "opentelemetry",
+        ResourceAttributes.TELEMETRY_SDK_VERSION: pkg_resources.get_distribution(
             "opentelemetry-sdk"
         ).version,
     }
@@ -39,11 +47,8 @@ class OpentelemetryLogFormatter(logging.Formatter):
     def __init__(self, **kwargs):
         """Init."""
         super().__init__()
-        self.resource_attributes = kwargs.get("resource_attributes") or {}
-        if not self.resource_attributes.get("service.name"):
-            raise Exception("service.name is mandatory in resource_attributes")
-        self.resource_attributes.update(self.DEFAULT_RESOURCE)
-        self.use_traces = kwargs.get("use_traces")
+        self.resource_attributes = {**self.DEFAULT_RESOURCE, **(kwargs.get("resource_attributes") or {})}
+        self.use_traces = kwargs.get("use_traces", True)
         self.json_indent = kwargs.get("json_indent", 0)
         self.meta_character_limit = kwargs.get("meta_character_limit", 1000)
         self.body_character_limit = kwargs.get("body_character_limit", 500)

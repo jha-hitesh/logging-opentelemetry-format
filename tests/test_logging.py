@@ -40,17 +40,11 @@ logging.config.dictConfig({
     "formatters": {
         "opentelemetry_formatter": {
             "()": OpentelemetryLogFormatter,
-            "use_traces": True,
             "restrict_attributes_to": [
                 "key1", "key2", "key3"
             ],
-            "discard_attributes_from": _RESERVED_ATTRS,
             "meta_character_limit": 100,
-            "body_character_limit": 10,
-            "resource_attributes": {
-                "service.name": "app-main-server",
-                "service.instance.id": socket.gethostname()
-            }
+            "body_character_limit": 10
         }
     },
     "loggers": {
