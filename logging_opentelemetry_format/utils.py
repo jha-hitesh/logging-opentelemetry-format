@@ -49,6 +49,8 @@ class OpentelemetryLogFormatter(logging.Formatter):
         super().__init__()
         self.resource_attributes = {**self.DEFAULT_RESOURCE, **(kwargs.get("resource_attributes") or {})}
         self.use_traces = kwargs.get("use_traces", True)
+        if os.environ.get("OTEL_SDK_DISABLED"):
+            self.use_traces = False
         self.json_indent = kwargs.get("json_indent", 0)
         self.meta_character_limit = kwargs.get("meta_character_limit", 1000)
         self.body_character_limit = kwargs.get("body_character_limit", 500)
@@ -57,6 +59,11 @@ class OpentelemetryLogFormatter(logging.Formatter):
             self.BODY_TOO_LARGE_ATTRIBUTE_NAME, self.BODY_CHAR_LENGTH_ATTRIBUTE_NAME,
             self.META_TOO_LARGE_ATTRIBUTE_NAME, self.META_CHAR_LENGTH_ATTRIBUTE_NAME
         }
+
+        self.get_trace_related_data = self.get_dummy_trace_data
+        if self.use_traces:
+            self.get_trace_related_data = self.get_real_trace_data
+
         self.get_attributes = self.get_attributes_simple
         if kwargs.get("restrict_attributes_to"):
             self.get_attributes = self.get_attributes_structured
@@ -98,19 +105,20 @@ class OpentelemetryLogFormatter(logging.Formatter):
             attributes["exc_info"] = self.formatException(exc_info)
         return attributes
 
-    def get_trace_related_data(self):
-        """get_trace_related_data."""
-        if self.use_traces:
-            span_context = get_current_span().get_span_context()
-            return(span_context.trace_id, span_context.span_id, span_context.trace_flags)
-        else:
-            return ("", "", 0)
+    def get_real_trace_data(self):
+        """get_real_trace_data."""
+        span_context = get_current_span().get_span_context()
+        trace_id = format_trace_id(span_context.trace_id if span_context.trace_id else 0)
+        span_id = format_span_id(span_context.span_id if span_context.span_id else 0)
+        return(trace_id, span_id, span_context.trace_flags)
+
+    def get_dummy_trace_data(self):
+        """get_dummy_trace_data."""
+        return ("00000000000000000000000000000000", "0000000000000000", 0)
 
     def format(self, record):  # noqa: A003
         """format."""
         trace_id, span_id, trace_flags = self.get_trace_related_data()
-        trace_id = format_trace_id(trace_id if trace_id else 0)
-        span_id = format_span_id(span_id if span_id else 0)
 
         body = record.getMessage()
         raw_attributes = vars(record)

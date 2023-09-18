@@ -11,7 +11,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="logging_opentelemetry_format",
-    version="0.0.2",
+    version="0.0.3",
     author="hitesh jha",
     author_email="hitesh4official@gmail.com",
     description=description,
