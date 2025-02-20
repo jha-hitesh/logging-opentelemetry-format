@@ -141,7 +141,7 @@ class OpentelemetryLogFormatter(logging.Formatter):
             message_string = ujson.dumps(
                 record_dict, indent=self.json_indent)
         except TypeError as e:
-            logger.info("ujson failed to serialize, falling back to default json serializer")
+            logger.debug("ujson failed to serialize, falling back to default json serializer")
             message_string = json.dumps(
                 record_dict, indent=None, default=str)
         except Exception as e:
